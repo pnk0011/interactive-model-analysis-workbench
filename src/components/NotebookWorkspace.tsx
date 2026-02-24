@@ -2,12 +2,11 @@ import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNotebookStore } from "../store/notebookStore";
 import { CellList } from "./CellList";
-import { createNotebookJupyter, fetchNotebookContent } from "../services/jupyterClient";
+import { fetchNotebookContent } from "../services/jupyterClient";
 
 export const NotebookWorkspace = () => {
   const activeNotebookId = useNotebookStore((state) => state.activeNotebookId);
   const notebooks = useNotebookStore((state) => state.notebooks);
-  const setNotebookPath = useNotebookStore((state) => state.setNotebookPath);
   const setNotebookCells = useNotebookStore((state) => state.setNotebookCells);
 
   const activeNotebook = useMemo(
@@ -18,11 +17,11 @@ export const NotebookWorkspace = () => {
   const notebookContentQuery = useQuery({
     queryKey: ["notebookContent", activeNotebook?.path],
     queryFn: () => fetchNotebookContent(activeNotebook!.path!),
-    enabled: Boolean(activeNotebook?.path),
+    enabled: Boolean(activeNotebook?.path && activeNotebook.hasLoaded === false),
   });
 
   useEffect(() => {
-    if (!activeNotebook?.path) {
+    if (!activeNotebook?.path || activeNotebook.hasLoaded !== false) {
       return;
     }
     if (notebookContentQuery.isSuccess) {
@@ -35,17 +34,6 @@ export const NotebookWorkspace = () => {
     notebookContentQuery.isSuccess,
     setNotebookCells,
   ]);
-
-  const handleSyncNotebook = async () => {
-    if (!activeNotebook) {
-      return;
-    }
-    if (activeNotebook.path) {
-      return;
-    }
-    const path = await createNotebookJupyter(activeNotebook.name);
-    setNotebookPath(activeNotebook.id, path);
-  };
 
   if (!activeNotebook) {
     return (
@@ -64,15 +52,6 @@ export const NotebookWorkspace = () => {
             Cells: {activeNotebook.cellOrder.length}
           </p>
         </div>
-        <div>
-           Active kaernal {activeNotebook.kernelId}
-        </div>
-        <button
-          onClick={handleSyncNotebook}
-          className="rounded border border-slate-700 px-3 py-2 text-sm text-slate-200 hover:border-sky-500 hover:text-sky-200"
-        >
-          Sync to Jupyter
-        </button>
       </div>
       {notebookContentQuery.isLoading && activeNotebook.path ? (
         <div className="flex flex-1 items-center justify-center text-slate-400">

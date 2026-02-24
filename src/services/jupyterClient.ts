@@ -1,7 +1,7 @@
 const baseUrl =
   import.meta.env.VITE_JUPYTER_BASE_URL ??
   "http://localhost:8000/user/admin/api";
-const token = "85d60d83144b463984eba1aaf1d44e1f";
+const token = import.meta.env.VITE_JUPYTER_TOKEN ?? "";
 
 const withToken = (url: string) => {
   if (!token) {
@@ -61,10 +61,13 @@ export const listNotebooks = async () => {
 };
 
 export const fetchNotebookContent = async (path: string) => {
-  const response = await fetch(withToken(`${baseUrl}/contents/${path}?content=1`), {
-    method: "GET",
-    headers: headers(),
-  });
+  const response = await fetch(
+    withToken(`${baseUrl}/contents/${path}?content=1`),
+    {
+      method: "GET",
+      headers: headers(),
+    }
+  );
   if (!response.ok) {
     throw new Error("Failed to fetch notebook content");
   }
@@ -84,20 +87,24 @@ export const fetchNotebookContent = async (path: string) => {
 };
 
 export const createNotebookJupyter = async (name: string) => {
-  const response = await fetch(withToken(`${baseUrl}/contents/${name}.ipynb`), {
-    method: "PUT",
-    headers: headers(),
-    body: JSON.stringify({
-      type: "notebook",
-      path: name,
-      "content": {
-        "cells": [],
-        "metadata": {},
-        "nbformat": 4,
-        "nbformat_minor": 5
-      }
-    }),
-  });
+  const safeName = name.endsWith(".ipynb") ? name : `${name}.ipynb`;
+  const response = await fetch(
+    withToken(`${baseUrl}/contents/${safeName}`),
+    {
+      method: "PUT",
+      headers: headers(),
+      body: JSON.stringify({
+        type: "notebook",
+        format: "json",
+        content: {
+          cells: [],
+          metadata: {},
+          nbformat: 4,
+          nbformat_minor: 5,
+        },
+      }),
+    }
+  );
   if (!response.ok) {
     throw new Error("Failed to create notebook");
   }
@@ -107,15 +114,18 @@ export const createNotebookJupyter = async (name: string) => {
 };
 
 export const updateNotebook = async (path: string, notebook: NotebookContent) => {
-  const response = await fetch(withToken(`${baseUrl}/contents/${path}`), {
-    method: "PUT",
-    headers: headers(),
-    body: JSON.stringify({
-      type: "notebook",
-      format: "json",
-      content: notebook,
-    }),
-  });
+  const response = await fetch(
+    withToken(`${baseUrl}/contents/${path}`),
+    {
+      method: "PUT",
+      headers: headers(),
+      body: JSON.stringify({
+        type: "notebook",
+        format: "json",
+        content: notebook,
+      }),
+    }
+  );
   if (!response.ok) {
     throw new Error("Failed to update notebook");
   }
@@ -123,19 +133,6 @@ export const updateNotebook = async (path: string, notebook: NotebookContent) =>
 };
 
 export const createKernel = async () => {
-  const response = await fetch(withToken(`${baseUrl}/kernels`), {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify({ name: "python3" }),
-  });
-  if (!response.ok) {
-    throw new Error("Failed to create kernel");
-  }
-  const data = (await response.json()) as { id: string };
-  return data.id;
-};
-
-export const activeKernels = async () => {
   const response = await fetch(withToken(`${baseUrl}/kernels`), {
     method: "POST",
     headers: headers(),

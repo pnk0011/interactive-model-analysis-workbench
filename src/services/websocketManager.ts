@@ -36,7 +36,7 @@ const buildSocketUrl = (kernelId: string, token: string) => {
 
 const ensureSocket = (kernelId: string) => {
 
-  const token = "85d60d83144b463984eba1aaf1d44e1f";
+  const token = import.meta.env.VITE_JUPYTER_TOKEN ?? "";
   const existing = socketMap.get(kernelId);
   if (existing) {
     return existing;

@@ -12,7 +12,7 @@ export const NotebookList = () => {
 
   const handleCreate = () => {
     createNotebook(name.trim() || undefined);
-    createNotebookJupyter(name.trim())
+    createNotebookJupyter(name.trim());
     setName("");
   };
 
@@ -57,7 +57,7 @@ export const NotebookList = () => {
                   onClick={() => setActiveNotebook(id)}
                   className="flex-1 text-left"
                 >
-                  {notebook?.name+ ".ipynb"}
+                  {notebook?.name.endsWith(".ipynb") ? notebook?.name : `${notebook?.name}.ipynb`}
                 </button>
               </div>
             );

@@ -115,13 +115,13 @@ export const useNotebookStore = create<NotebookState>((set, get) => {
     createNotebook: (name) => {
       const id = createId();
       const cell = createStarterCell();
-      console.log("createNotebook", cell);
       set((state) => ({
         notebooks: {
           ...state.notebooks,
           [id]: {
             id,
             name: name ?? "Untitled",
+            hasLoaded: true,
             cellOrder: [cell.id],
           },
         },

@@ -7,8 +7,7 @@ import {
   createKernel,
   createNotebookJupyter,
   toNotebookContent,
-  updateNotebook
-  ,
+  updateNotebook,
 } from "../services/jupyterClient";
 import { runCode } from "../services/websocketManager";
 import { createId } from "../utils/id";
@@ -61,6 +60,21 @@ export const CellItem = ({ cellId, notebookId, index }: CellItemProps) => {
     },
   });
 
+  const handleDelete = async () => {
+    if (!notebook) {
+      return;
+    }
+    deleteCell(notebookId, cellId);
+    if (!notebook.path) {
+      return;
+    }
+    try {
+      await updateMutation.mutateAsync();
+    } catch {
+      console.error("Failed to delete cell");
+    }
+  };
+
   const handleRun = async () => {
     if (!cell || !notebook) {
       return;
@@ -68,11 +82,11 @@ export const CellItem = ({ cellId, notebookId, index }: CellItemProps) => {
     stopRef.current?.();
     clearOutputs(cellId);
     setCellStatus(cellId, "running");
-    appendOutput(cellId, {
-      id: createId(),
-      type: "status",
-      text: "Syncing notebook to Jupyter...",
-    });
+      // appendOutput(cellId, {
+      //   id: createId(),
+      //   type: "status",
+      //   text: "Syncing notebook to Jupyter...",
+      // });
     
     try {
       await updateMutation.mutateAsync();
@@ -87,11 +101,11 @@ export const CellItem = ({ cellId, notebookId, index }: CellItemProps) => {
     }
     let kernelId = notebook.kernelId;
     if (!kernelId) {
-      appendOutput(cellId, {
-        id: createId(),
-        type: "status",
-        text: "Starting Jupyter kernel...",
-      });
+      // appendOutput(cellId, {
+      //   id: createId(),
+      //   type: "status",
+      //   text: "Starting Jupyter kernel...",
+      // });
       try {
         kernelId = await createKernel();
         setNotebookKernel(notebookId, kernelId);
@@ -105,11 +119,10 @@ export const CellItem = ({ cellId, notebookId, index }: CellItemProps) => {
         return;
       }
     }
-    console.log("error here" , cellId , cell , "undefined");
     appendOutput(cellId, {
       id: createId(),
       type: "status",
-      text: "Executing cell via websocket...",
+      text: "Executing cell...",
     });
     stopRef.current = runCode(kernelId, cell.code, (output) => {
       appendOutput(cellId, output);
@@ -166,7 +179,7 @@ export const CellItem = ({ cellId, notebookId, index }: CellItemProps) => {
             Add Below
           </button>
           <button
-            onClick={() => deleteCell(notebookId, cellId)}
+            onClick={handleDelete}
             className="rounded border border-rose-500/60 px-2 py-1 text-xs text-rose-300 hover:border-rose-400"
           >
             Delete
