@@ -1,4 +1,4 @@
-# AryaXAI Interactive Model Analysis Workbench Assignment
+#Interactive Model Analysis Workbench
 
 High-fidelity prototype of an interactive notebook workbench with realtime execution,
 virtualized cell rendering, and drag-and-drop cell ordering.
